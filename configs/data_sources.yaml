@@ -71,13 +71,18 @@ sources:
     warning: Availability and locale coverage must be checked in the current release.
 
   sami_parliament:
-    languages: [sme]
-    supervision: manual
-    hours: 20
+    languages: [sme, smj, sma, nob]
+    supervision: mixed
+    hours_indexed:
+      nob: 773.73
+      sme: 761.82
+      smj: 686.37
+      sma: 724.53
     access: public_web
-    role: train_evaluation
+    role: train_pseudolabel
     url: https://sametinget.kommunetv.no/archive
     reference: https://github.com/aalto-speech/northern-sami-asr
+    warning: The public archive channels are mostly unlabeled; published work used a manually aligned 20 h subset.
 
   sami_radio_ssl:
     languages: [sme, smj, sma]
@@ -95,4 +100,3 @@ sources:
     role: train_evaluation
     url: https://www.hf.uio.no/iln/english/about/organisation/text-laboratory/projects/ruija/ruija.html
     warning: Request access from Professor Pia Lane; split by speaker and recording decade.
-

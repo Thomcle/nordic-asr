@@ -63,7 +63,10 @@ def main() -> None:
             samples, sample_rate = audio_array(row[args.audio_column])
             if samples.ndim > 1:
                 samples = samples.mean(axis=0)
-            item_id = str(row.get(args.id_column, index)).replace("/", "_")
+            original_id = str(row.get(args.id_column, index)).replace("/", "_")
+            # Some datasets (including FLEURS) reuse their `id` field, so the
+            # row index is part of the storage and manifest identity.
+            item_id = f"{index:09d}_{original_id}"
             path = (audio_dir / f"{item_id}.flac").resolve()
             sf.write(path, samples, sample_rate, format="FLAC")
             duration = len(samples) / sample_rate
@@ -79,6 +82,7 @@ def main() -> None:
                 ),
                 "source": source,
                 "supervision": "manual",
+                "original_id": original_id,
             }
             manifest.write(json.dumps(output, ensure_ascii=False) + "\n")
             count += 1
@@ -88,4 +92,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

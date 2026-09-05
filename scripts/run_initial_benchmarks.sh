@@ -14,8 +14,7 @@ mkdir -p "$ROOT/runs/baselines"
   --out "$ROOT/runs/baselines/whisper-large-v3_fleurs-nb.jsonl"
 
 "$PY" "$ROOT/scripts/baseline_transcribe.py" "$MANIFEST" \
-  --model NbAiLab/nb-whisper-large-v0.8 \
+  --model NbAiLab/nb-whisper-large \
   --language norwegian \
   --batch-size 8 \
-  --out "$ROOT/runs/baselines/nb-whisper-large-v0.8_fleurs-nb.jsonl"
-
+  --out "$ROOT/runs/baselines/nb-whisper-large_fleurs-nb.jsonl"

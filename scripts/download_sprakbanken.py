@@ -67,7 +67,11 @@ def download(url: str, destination: Path) -> None:
         headers["Range"] = f"bytes={existing}-"
     request = urllib.request.Request(url, headers=headers)
     mode = "ab" if existing else "wb"
-    with urllib.request.urlopen(request, timeout=300) as response, partial.open(mode) as handle:
+    response = urllib.request.urlopen(request, timeout=300)
+    if existing and getattr(response, "status", None) != 206:
+        # The server ignored Range; restart instead of appending a second archive.
+        mode = "wb"
+    with response, partial.open(mode) as handle:
         while chunk := response.read(8 * 1024 * 1024):
             handle.write(chunk)
     partial.replace(destination)
@@ -110,4 +114,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

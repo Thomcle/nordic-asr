@@ -1,0 +1,28 @@
+Metadata-Version: 2.4
+Name: nordic-asr
+Version: 0.1.0
+Summary: Reproducible Norwegian, Sámi and Kven ASR experiments
+Requires-Python: <3.13,>=3.10
+Requires-Dist: accelerate<2,>=1.10
+Requires-Dist: datasets[audio]<5,>=3.6
+Requires-Dist: evaluate<0.5,>=0.4
+Requires-Dist: huggingface-hub<1,>=0.34
+Requires-Dist: jiwer<5,>=4
+Requires-Dist: librosa<0.12,>=0.11
+Requires-Dist: numpy<3,>=2.1
+Requires-Dist: pandas<4,>=2.2
+Requires-Dist: peft<0.18,>=0.17
+Requires-Dist: pyarrow<26,>=20
+Requires-Dist: pyyaml<7,>=6
+Requires-Dist: safetensors<0.9,>=0.6
+Requires-Dist: soundfile<0.15,>=0.13
+Requires-Dist: torch<2.9,>=2.4
+Requires-Dist: torchaudio<2.9,>=2.4
+Requires-Dist: transformers<5,>=4.56
+Provides-Extra: quality
+Requires-Dist: audiomentations<0.43,>=0.42; extra == "quality"
+Requires-Dist: datasketch<2,>=1.6; extra == "quality"
+Requires-Dist: ftfy<7,>=6.3; extra == "quality"
+Provides-Extra: dev
+Requires-Dist: pytest<9,>=8.4; extra == "dev"
+Requires-Dist: ruff<0.14,>=0.12; extra == "dev"

@@ -10,7 +10,7 @@ sera le meilleur compromis.
 ### Branche générative
 
 - Point de départ : `openai/whisper-large-v3`.
-- Référence norvégienne : `NbAiLab/nb-whisper-large-v0.8`.
+- Référence norvégienne : `NbAiLab/nb-whisper-large`.
 - Référence sámi : `NbAiLab/whisper-large-sme`.
 - Première passe : LoRA rang 32 sur attention et projections.
 - Deuxième passe : dégel des six derniers blocs de l’encodeur si le gain de
@@ -53,4 +53,3 @@ un identifiant ambigu : `nob`, `nno`, `sme`, `smj`, `sma`, `fkv`.
 Le jeu kvène Ruija est la dépendance la plus importante. Une partie doit être
 gelée avant tout entraînement. Sans test kvène indépendant, aucune affirmation
 « SOTA kvène » n’est défendable.
-

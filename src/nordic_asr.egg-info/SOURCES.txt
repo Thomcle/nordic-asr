@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/nordic_asr/__init__.py
+src/nordic_asr/metrics.py
+src/nordic_asr/text.py
+src/nordic_asr.egg-info/PKG-INFO
+src/nordic_asr.egg-info/SOURCES.txt
+src/nordic_asr.egg-info/dependency_links.txt
+src/nordic_asr.egg-info/requires.txt
+src/nordic_asr.egg-info/top_level.txt
+tests/test_text_and_metrics.py
