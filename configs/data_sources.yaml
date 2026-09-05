@@ -1,0 +1,98 @@
+languages:
+  nob:
+    name: Norwegian Bokmål
+  nno:
+    name: Norwegian Nynorsk
+  sme:
+    name: Northern Sámi
+  smj:
+    name: Lule Sámi
+  sma:
+    name: Southern Sámi
+  fkv:
+    name: Kven
+
+sources:
+  npsc_v2:
+    languages: [nob, nno]
+    supervision: manual
+    hours: 140
+    access: public_direct
+    role: train_dev
+    url: https://www.nb.no/SPRAKBANKEN/ressurskatalog/oai-nb-no-sbr-84/
+    warning: Split by parliamentary sitting; exclude overlaps with SSC evaluation.
+
+  stortinget_v1:
+    languages: [nob, nno]
+    supervision: weak
+    hours: 5000
+    access: public_direct
+    role: train
+    url: https://huggingface.co/datasets/Aalto-Speech-Synthesis/stortinget_speech_corpus_v1.0
+    warning: Filter by alignment score and exclude NPSC dates.
+
+  nst:
+    languages: [nob]
+    supervision: manual
+    hours: 500
+    access: public_direct
+    role: train_dev
+    url: https://www.nb.no/SPRAKBANKEN/ressurskatalog/oai-nb-no-sbr-54/
+    warning: Keep speaker-disjoint evaluation; microphone variants may duplicate utterances.
+
+  nb_tale:
+    languages: [nob]
+    supervision: manual
+    access: public_direct
+    role: evaluation
+    url: https://huggingface.co/datasets/scribe-project/nbtale12
+
+  nb_samtale:
+    languages: [nob, nno]
+    supervision: manual
+    hours: 24
+    access: public_direct
+    role: evaluation
+    url: https://www.nb.no/SPRAKBANKEN/ressurskatalog/oai-nb-no-sbr-85/
+
+  fleurs_nb:
+    languages: [nob]
+    supervision: manual
+    access: public_direct
+    role: evaluation
+    url: https://huggingface.co/datasets/google/fleurs
+
+  common_voice:
+    languages: [nob, nno, sme, smj, sma, fkv]
+    supervision: crowd
+    access: account_required
+    role: train_evaluation
+    url: https://datacollective.mozillafoundation.org/
+    warning: Availability and locale coverage must be checked in the current release.
+
+  sami_parliament:
+    languages: [sme]
+    supervision: manual
+    hours: 20
+    access: public_web
+    role: train_evaluation
+    url: https://sametinget.kommunetv.no/archive
+    reference: https://github.com/aalto-speech/northern-sami-asr
+
+  sami_radio_ssl:
+    languages: [sme, smj, sma]
+    supervision: unlabeled
+    hours: 22400
+    access: pretrained_weights
+    role: initialization
+    url: https://huggingface.co/GetmanY1/wav2vec2-large-sami-cont-pt-22k
+    warning: Audio itself is held by KAVI; use the released pretrained checkpoint.
+
+  ruija:
+    languages: [fkv, fin]
+    supervision: manual
+    access: application_required
+    role: train_evaluation
+    url: https://www.hf.uio.no/iln/english/about/organisation/text-laboratory/projects/ruija/ruija.html
+    warning: Request access from Professor Pia Lane; split by speaker and recording decade.
+

@@ -1,0 +1,43 @@
+seed: 20260905
+
+languages:
+  - nob
+  - nno
+  - sme
+  - fkv
+
+sampling:
+  # Temperature sampling prevents 5000 h of Norwegian from erasing low-resource languages.
+  temperature: 0.5
+  maximum_share_per_source: 0.45
+  minimum_hours_per_language_per_epoch: 20
+
+audio:
+  sample_rate: 16000
+  min_seconds: 0.5
+  max_seconds: 30.0
+  peak_dbfs_max: -0.1
+  silence_ratio_max: 0.60
+
+evaluation:
+  primary_metric: macro_wer
+  report_metrics: [wer, cer, empty_rate]
+  preserve_diacritics: true
+  bootstrap_samples: 1000
+
+candidates:
+  whisper:
+    base_model: openai/whisper-large-v3
+    method: lora_then_partial_unfreeze
+    lora_rank: 32
+    lora_alpha: 64
+    learning_rate: 0.0001
+    batch_size_per_gpu: 2
+    gradient_accumulation_steps: 8
+  sami_ctc:
+    base_model: GetmanY1/wav2vec2-large-sami-cont-pt-22k
+    method: full_finetune
+  omni_ctc:
+    base_model: omniASR_CTC_1B_v2
+    method: full_finetune
+
