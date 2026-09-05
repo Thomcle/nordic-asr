@@ -6,6 +6,8 @@ L’Université d’Oslo demande un courriel indiquant nom, affiliation, objecti
 recherche et cadre du projet. Le corpus contient près de 522 000 mots alignés à
 des entretiens enregistrés entre 1960 et 2014.
 
+**Statut : demande envoyée le 5 septembre 2026 ; réponse en attente.**
+
 Page : <https://www.hf.uio.no/iln/english/about/organisation/text-laboratory/projects/ruija/ruija.html>
 
 Demande : réserver avant entraînement un sous-ensemble de locuteurs comme test
@@ -26,4 +28,3 @@ Page : <https://datacollective.mozillafoundation.org/>
 - FLEURS norvégien ;
 - modèles et scripts de référence pour le Parlement sámi ;
 - encodeur wav2vec2 préentraîné sur 22 400 h de radio sámi.
-
