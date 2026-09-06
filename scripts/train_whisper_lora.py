@@ -23,13 +23,11 @@ from transformers import (
     WhisperProcessor,
 )
 
-LANGUAGE_TOKENS = ["<|nob|>", "<|nno|>", "<|sme|>", "<|smj|>", "<|sma|>", "<|fkv|>"]
-
-
 class ManifestDataset(Dataset):
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, custom_language_tokens: bool = False) -> None:
         with path.open(encoding="utf-8") as handle:
             self.rows = [json.loads(line) for line in handle]
+        self.custom_language_tokens = custom_language_tokens
 
     def __len__(self) -> int:
         return len(self.rows)
@@ -42,9 +40,12 @@ class ManifestDataset(Dataset):
         waveform = torch.from_numpy(np.asarray(samples))
         if sample_rate != 16000:
             waveform = AF.resample(waveform, sample_rate, 16000)
+        text = row["text"]
+        if self.custom_language_tokens:
+            text = f"<|{row['language']}|>{text}"
         return {
             "audio": waveform.numpy(),
-            "text": f"<|{row['language']}|>{row['text']}",
+            "text": text,
         }
 
 
@@ -73,19 +74,45 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", type=Path, required=True)
     parser.add_argument("--validation", type=Path, required=True)
-    parser.add_argument("--model", default="openai/whisper-large-v3")
+    parser.add_argument("--model", default="NbAiLab/nb-whisper-large")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--steps", type=int, default=10000)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--gradient-accumulation", type=int, default=8)
     parser.add_argument("--lora-rank", type=int, default=32)
+    parser.add_argument("--eval-steps", type=int, default=500)
+    parser.add_argument("--save-steps", type=int, default=500)
+    parser.add_argument("--warmup-steps", type=int, default=100)
+    parser.add_argument("--whisper-language", default="norwegian")
+    parser.add_argument("--report-to", default="none")
+    parser.add_argument(
+        "--custom-language-tokens",
+        action="store_true",
+        help="Use project-specific ISO language tokens for multilingual experiments.",
+    )
+    parser.add_argument("--resume-from-checkpoint")
     args = parser.parse_args()
 
     processor = WhisperProcessor.from_pretrained(args.model)
-    processor.tokenizer.add_special_tokens(
-        {"additional_special_tokens": LANGUAGE_TOKENS}
-    )
+    if args.custom_language_tokens:
+        language_tokens = [
+            "<|nob|>",
+            "<|nno|>",
+            "<|sme|>",
+            "<|smj|>",
+            "<|sma|>",
+            "<|fkv|>",
+        ]
+        processor.tokenizer.add_special_tokens(
+            {"additional_special_tokens": language_tokens}
+        )
+    else:
+        processor.tokenizer.set_prefix_tokens(
+            language=args.whisper_language,
+            task="transcribe",
+            predict_timestamps=False,
+        )
     model = WhisperForConditionalGeneration.from_pretrained(
         args.model,
         torch_dtype=torch.bfloat16,
@@ -93,6 +120,8 @@ def main() -> None:
     )
     model.resize_token_embeddings(len(processor.tokenizer))
     model.config.forced_decoder_ids = None
+    model.generation_config.language = args.whisper_language
+    model.generation_config.task = "transcribe"
     model.config.use_cache = False
     model.gradient_checkpointing_enable()
     model = get_peft_model(
@@ -120,14 +149,15 @@ def main() -> None:
         output_dir=str(args.output),
         max_steps=args.steps,
         learning_rate=args.learning_rate,
+        warmup_steps=args.warmup_steps,
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         gradient_accumulation_steps=args.gradient_accumulation,
         bf16=True,
         gradient_checkpointing=True,
         eval_strategy="steps",
-        eval_steps=500,
-        save_steps=500,
+        eval_steps=args.eval_steps,
+        save_steps=args.save_steps,
         logging_steps=20,
         predict_with_generate=True,
         generation_max_length=225,
@@ -137,23 +167,22 @@ def main() -> None:
         save_total_limit=3,
         dataloader_num_workers=8,
         remove_unused_columns=False,
-        report_to="tensorboard",
+        report_to=args.report_to,
         ddp_find_unused_parameters=False,
     )
     trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
-        train_dataset=ManifestDataset(args.train),
-        eval_dataset=ManifestDataset(args.validation),
+        train_dataset=ManifestDataset(args.train, args.custom_language_tokens),
+        eval_dataset=ManifestDataset(args.validation, args.custom_language_tokens),
         data_collator=Collator(processor),
         compute_metrics=compute_metrics,
         processing_class=processor,
     )
-    trainer.train()
+    trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
     trainer.save_model(args.output / "best")
     processor.save_pretrained(args.output / "best")
 
 
 if __name__ == "__main__":
     main()
-

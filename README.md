@@ -60,6 +60,17 @@ python scripts/download_sprakbanken.py \
 python scripts/validate_manifest.py data/manifests/train.jsonl
 ```
 
+Le premier entraînement norvégien reproductible extrait uniquement les
+segments NPSC, construit un split de validation par séance, exécute un smoke
+test distribué puis lance une adaptation LoRA de NB-Whisper sur les deux GPU :
+
+```bash
+nohup scripts/run_npsc_training_pipeline.sh \
+  > logs/npsc_training_pipeline.log 2>&1 &
+```
+
+Le test NB Tale reste strictement exclu de cet entraînement.
+
 ## Acquisition publique et reprise
 
 Tous les téléchargements sont atomiques et reprenables. Les index JSONL

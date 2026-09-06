@@ -38,7 +38,15 @@ def select_rows(rows: list[dict], max_minutes: float | None) -> list[dict]:
     return selected
 
 
-def write_metrics(path: Path, provider: str, rows: list[dict]) -> None:
+def write_metrics(
+    path: Path,
+    provider: str,
+    rows: list[dict],
+    metadata_by_id: dict[str, dict],
+) -> None:
+    for row in rows:
+        metadata = metadata_by_id.get(str(row.get("id")), {})
+        row.setdefault("speaker_id", metadata.get("speaker_id"))
     successful = [
         row for row in rows if row.get("status") == "ok" and row.get("reference")
     ]
@@ -66,6 +74,11 @@ def write_metrics(path: Path, provider: str, rows: list[dict]) -> None:
             )
         latencies = [float(row["latency_seconds"]) for row in successful]
         result["mean_latency_seconds"] = sum(latencies) / len(latencies)
+        result["total_latency_seconds"] = sum(latencies)
+        audio_seconds = sum(float(row.get("duration") or 0) for row in successful)
+        result["realtime_factor"] = (
+            sum(latencies) / audio_seconds if audio_seconds else None
+        )
     path.write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -88,6 +101,7 @@ def main() -> None:
     if args.languages:
         rows = [row for row in rows if row.get("language") in args.languages]
     rows = select_rows(rows, args.max_minutes)
+    metadata_by_id = {str(row["id"]): row for row in rows}
     missing = [
         str(row["audio"]) for row in rows if not Path(row["audio"]).is_file()
     ]
@@ -147,6 +161,7 @@ def main() -> None:
             args.out / f"{provider}.metrics.json",
             provider,
             load_jsonl(output_path),
+            metadata_by_id,
         )
 
 

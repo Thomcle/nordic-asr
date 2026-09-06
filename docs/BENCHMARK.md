@@ -62,6 +62,7 @@ Les paramètres non secrets et les liens de référence figurent dans
 
 - ElevenLabs Scribe v2 ;
 - Deepgram Nova-3 ;
+- Google Speech-to-Text `latest_short` ;
 - NB-Whisper, Whisper large-v3 et OmniASR ;
 - les modèles spécialisés sámi pour les tests sámi.
 
@@ -93,7 +94,7 @@ figurer dans un manifest, une commande versionnée ou Git :
 ```bash
 python -m pip install -e ".[cloud]"
 python scripts/benchmark_cloud.py data/eval/customer/test.jsonl \
-  --providers elevenlabs deepgram \
+  --providers elevenlabs deepgram google \
   --max-minutes 25
 ```
 
@@ -107,3 +108,39 @@ Git.
 publiques. Les indicateurs dialectaux sont géographiques et doivent être
 confirmés par un humain. Les sous-titres marqués `Auto` ne constituent pas une
 référence de test avant correction.
+
+## Résultats norvégiens du 6 septembre 2026
+
+Le test cloud court contient 116 segments NB Tale, 15,43 minutes et environ
+trois minutes par région. Son SHA-256 est
+`642e7f266e89db1eecfdf0f9701aad0fb074bdc75adcab6cb54cdfb8bfb7d9fc`.
+Il sert à comparer les fournisseurs à coût réduit, pas à établir seul une
+supériorité statistique.
+
+| Système | East | Mid | North | South | West | Macro-WER | RTF API |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| NbAiLab/nb-whisper-large (local) | 10,07 % | 4,85 % | 6,60 % | 7,47 % | 3,73 % | **6,54 %** | — |
+| ElevenLabs Scribe v2 | 9,40 % | 5,83 % | 7,99 % | 7,83 % | 4,41 % | 7,09 % | 0,120 |
+| Deepgram Nova-3 | 20,13 % | 15,53 % | 19,44 % | 14,95 % | 12,20 % | 16,45 % | 0,119 |
+| Google `latest_short` | 20,81 % | 11,65 % | 22,92 % | 11,74 % | 17,97 % | 17,02 % | 0,169 |
+| openai/whisper-large-v3 (local) | 23,15 % | 18,12 % | 17,71 % | 18,15 % | 16,61 % | 18,75 % | — |
+| OmniASR CTC 1B v2 (local) | 27,18 % | 20,71 % | 25,35 % | 18,86 % | 22,37 % | 22,89 % | — |
+
+Tous les 116 appels ont réussi. Les intervalles bootstrap à 95 % sont
+enregistrés dans les sorties métriques. Le RTF mesure ici le temps de réponse
+API cumulé divisé par la durée audio ; il n’inclut pas une éventuelle file
+d’attente applicative.
+
+Le test dialectal local long contient 2 104 segments et 4 h 45 d’audio. Son
+SHA-256 est
+`01cdf2ef9a6139bf6beff6144e30ec959ef6ec5326ccf95f963b2840b4e3f49d`.
+
+| Modèle local | East | Mid | North | South | West | Macro-WER |
+|---|---:|---:|---:|---:|---:|---:|
+| NbAiLab/nb-whisper-large | 7,26 % | 7,24 % | 8,83 % | 8,28 % | 8,54 % | **8,03 %** |
+| openai/whisper-large-v3 | 15,17 % | 15,42 % | 16,15 % | 18,50 % | 17,01 % | 16,45 % |
+| OmniASR CTC 1B v2 | 21,09 % | 21,52 % | 24,16 % | 24,68 % | 26,50 % | 23,59 % |
+
+Le premier tableau constitue la comparaison directe cloud/local, sur les mêmes
+segments. Le second, beaucoup plus long, est la mesure principale de robustesse
+dialectale locale.

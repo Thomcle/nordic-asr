@@ -31,8 +31,8 @@ providers:
     pricing_url: https://aws.amazon.com/transcribe/pricing/
     language_url: https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html
   google:
-    model: chirp
-    credential_environment_variable: GOOGLE_APPLICATION_CREDENTIALS
+    model: latest_short
+    credential_environment_variable: GOOGLE_API_KEY
     documented_languages: [nob]
     trial_note: New accounts may use general Google Cloud trial credit.
     pricing_url: https://cloud.google.com/speech-to-text/pricing

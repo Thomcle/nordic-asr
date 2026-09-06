@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import mimetypes
 import os
 from pathlib import Path
@@ -16,7 +17,11 @@ def provider_language(provider: str, row: dict) -> str | None:
     if override:
         return str(override)
     if row.get("language") in {"nob", "nno"}:
-        return "nor" if provider == "elevenlabs" else "no"
+        if provider == "elevenlabs":
+            return "nor"
+        if provider == "google":
+            return "nb-NO"
+        return "no"
     return None
 
 
@@ -82,7 +87,52 @@ def deepgram(audio: Path, row: dict, timeout: int = 3600) -> tuple[str, dict]:
     return str(text), payload
 
 
+def google(audio: Path, row: dict, timeout: int = 3600) -> tuple[str, dict]:
+    """Transcribe a short local segment with Google Speech-to-Text v1.
+
+    The API key is sent in a header rather than in the URL so exceptions and
+    benchmark logs cannot accidentally expose it.
+    """
+
+    key = os.environ.get("GOOGLE_API_KEY")
+    if not key:
+        raise RuntimeError("GOOGLE_API_KEY is not set")
+    language = provider_language("google", row)
+    if not language:
+        raise RuntimeError(
+            f"Google language is not configured for {row.get('language')!r}"
+        )
+    payload = {
+        "config": {
+            "languageCode": language,
+            "model": "latest_short",
+            "enableAutomaticPunctuation": True,
+        },
+        "audio": {
+            "content": base64.b64encode(audio.read_bytes()).decode("ascii"),
+        },
+    }
+    response = requests.post(
+        "https://speech.googleapis.com/v1/speech:recognize",
+        headers={
+            "x-goog-api-key": key,
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=(30, timeout),
+    )
+    response.raise_for_status()
+    result = response.json()
+    text = " ".join(
+        alternatives[0].get("transcript", "")
+        for item in result.get("results", [])
+        if (alternatives := item.get("alternatives", []))
+    )
+    return str(text), result
+
+
 PROVIDERS = {
     "elevenlabs": elevenlabs,
     "deepgram": deepgram,
+    "google": google,
 }
