@@ -75,6 +75,10 @@ def main() -> None:
     parser.add_argument("--train", type=Path, required=True)
     parser.add_argument("--validation", type=Path, required=True)
     parser.add_argument("--model", default="NbAiLab/nb-whisper-large")
+    parser.add_argument(
+        "--revision",
+        default="8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac",
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--steps", type=int, default=10000)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
@@ -94,7 +98,7 @@ def main() -> None:
     parser.add_argument("--resume-from-checkpoint")
     args = parser.parse_args()
 
-    processor = WhisperProcessor.from_pretrained(args.model)
+    processor = WhisperProcessor.from_pretrained(args.model, revision=args.revision)
     if args.custom_language_tokens:
         language_tokens = [
             "<|nob|>",
@@ -115,6 +119,7 @@ def main() -> None:
         )
     model = WhisperForConditionalGeneration.from_pretrained(
         args.model,
+        revision=args.revision,
         torch_dtype=torch.bfloat16,
         low_cpu_mem_usage=True,
     )

@@ -129,7 +129,9 @@ supériorité statistique.
 Tous les 116 appels ont réussi. Les intervalles bootstrap à 95 % sont
 enregistrés dans les sorties métriques. Le RTF mesure ici le temps de réponse
 API cumulé divisé par la durée audio ; il n’inclut pas une éventuelle file
-d’attente applicative.
+d’attente applicative. Les intervalles macro-WER de NB-Whisper
+(`4,91–8,38 %`) et d’ElevenLabs (`5,24–9,03 %`) se chevauchent : ce test court
+les place au même niveau statistique plutôt qu’il ne prouve un vainqueur.
 
 Le test dialectal local long contient 2 104 segments et 4 h 45 d’audio. Son
 SHA-256 est
