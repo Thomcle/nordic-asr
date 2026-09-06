@@ -44,7 +44,7 @@ def main() -> None:
                     "dialect": row.get("dialect"),
                     "source": row.get("source"),
                     "speaker_id": row.get("speaker_id"),
-                    "reference": row["text"],
+                    "reference": row.get("text", ""),
                     "hypothesis": hypothesis,
                 }
                 scored_rows.append(scored)
@@ -52,9 +52,18 @@ def main() -> None:
             print(f"{min(start + args.batch_size, len(rows))}/{len(rows)}", flush=True)
 
     metrics_path = args.out.with_suffix(".metrics.json")
+    evaluated_rows = [row for row in scored_rows if row["reference"].strip()]
+    metrics = (
+        score_rows(evaluated_rows, group_by=args.group_by)
+        if evaluated_rows
+        else {
+            "warning": "No human references; predictions are unscored.",
+            "utterances": len(scored_rows),
+        }
+    )
     metrics_path.write_text(
         json.dumps(
-            score_rows(scored_rows, group_by=args.group_by),
+            metrics,
             ensure_ascii=False,
             indent=2,
         )

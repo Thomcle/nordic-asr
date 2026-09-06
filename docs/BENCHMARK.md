@@ -22,12 +22,15 @@ humaine Ruija ou équivalente.
 
 ```bash
 python scripts/prepare_hf_dataset.py scribe-project/nbtale12 \
-  --split train --output-split test --where original_data_split=test \
+  --split train --output-split test \
   --language nob --audio-column utterance_audio_file \
   --text-column standardized_text --id-column utterance_id \
   --speaker-column speaker_id --dialect-column region \
   --metadata-columns gender original_data_split \
   --out data/eval/nbtale12
+python scripts/select_benchmark.py data/eval/nbtale12/test.jsonl \
+  --groups east west mid north south --minutes-per-group 60 \
+  --out data/eval/nbtale12/dialect_balanced.jsonl
 ```
 
 ### Démonstration courte
@@ -41,6 +44,16 @@ Un paquet de trois extraits de 5 à 8 minutes reste sous 25 minutes :
 Cette démonstration est adaptée aux crédits gratuits, mais trois extraits ne
 suffisent pas pour une affirmation statistique. Chaque transcription doit être
 corrigée par un locuteur compétent avant calcul du WER.
+
+Pour les médias sans transcription, une première sortie locale peut être
+exportée comme feuille de correction :
+
+```bash
+python scripts/export_review_csv.py \
+  data/eval/amedia_candidates/candidates.jsonl \
+  runs/benchmarks/nb-whisper-large_amedia.jsonl \
+  --out data/eval/amedia_candidates/human_review.csv
+```
 
 ## Fournisseurs
 
