@@ -5,9 +5,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import platform
+import random
+import time
 from pathlib import Path
 
+import numpy as np
 import torch
+import transformers
 from transformers import pipeline
 
 from nordic_asr.metrics import score_rows
@@ -17,12 +22,18 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--model", required=True)
+    parser.add_argument("--revision")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--chunk-seconds", type=float, default=30)
     parser.add_argument("--language", help="Whisper language name/code; omit for CTC")
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--seed", type=int, default=17)
     args = parser.parse_args()
+
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
 
     with args.manifest.open(encoding="utf-8") as handle:
         rows = [json.loads(line) for line in handle]
@@ -32,6 +43,7 @@ def main() -> None:
     recognizer = pipeline(
         "automatic-speech-recognition",
         model=args.model,
+        revision=args.revision,
         device=0 if torch.cuda.is_available() else -1,
         torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
         chunk_length_s=args.chunk_seconds,
@@ -42,6 +54,7 @@ def main() -> None:
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     scored_rows = []
+    started = time.monotonic()
     with args.out.open("w", encoding="utf-8") as output:
         for start in range(0, len(rows), args.batch_size):
             batch = rows[start : start + args.batch_size]
@@ -61,9 +74,31 @@ def main() -> None:
                 output.write(json.dumps(scored, ensure_ascii=False) + "\n")
             print(f"{min(start + args.batch_size, len(rows))}/{len(rows)}", flush=True)
 
+    elapsed = time.monotonic() - started
+    scores = score_rows(scored_rows)
     metrics_path = args.out.with_suffix(".metrics.json")
     metrics_path.write_text(
-        json.dumps(score_rows(scored_rows), ensure_ascii=False, indent=2) + "\n",
+        json.dumps(scores, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    metadata = {
+        "model": args.model,
+        "revision": args.revision,
+        "manifest": str(args.manifest),
+        "utterances": len(rows),
+        "language": args.language,
+        "batch_size": args.batch_size,
+        "chunk_seconds": args.chunk_seconds,
+        "seed": args.seed,
+        "elapsed_seconds": elapsed,
+        "python": platform.python_version(),
+        "torch": torch.__version__,
+        "transformers": transformers.__version__,
+        "cuda": torch.version.cuda,
+        "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+    }
+    args.out.with_suffix(".run.json").write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(metrics_path)
@@ -71,4 +106,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

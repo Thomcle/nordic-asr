@@ -37,6 +37,10 @@ models/        poids téléchargés et modèles produits
 runs/          journaux et checkpoints
 ```
 
+Les sources non conventionnelles (YouTube, Vimeo, NRK, Sveriges Radio,
+KommuneTV) sont documentées dans `docs/EXTERNAL_SOURCES.md` et déclarées dans
+`configs/external_sources.yaml` et `configs/acquisition.yaml`.
+
 ## Démarrage sur la VM
 
 ```bash
@@ -55,6 +59,58 @@ python scripts/download_sprakbanken.py \
 # Contrôle d'un manifest
 python scripts/validate_manifest.py data/manifests/train.jsonl
 ```
+
+## Acquisition publique et reprise
+
+Tous les téléchargements sont atomiques et reprenables. Les index JSONL
+conservent l’URL, l’identifiant, la durée et la provenance sans placer les
+médias dans Git.
+
+```bash
+# Parlement sámi : quatre canaux audio
+python scripts/index_sami_parliament.py
+python scripts/download_sami_parliament.py \
+  --languages sme smj sma nob --jobs 3
+
+# Radios sámi et meänkieli de Sveriges Radio
+python scripts/index_registered_media.py \
+  --group sveriges_radio --download --jobs 3
+
+# Séries NRK explicitement enregistrées (kvène et sámi)
+python scripts/index_registered_media.py \
+  --group nrk_series --download --jobs 2
+
+# Chaînes vidéo autorisées par la configuration
+python scripts/download_external_media.py \
+  --sources ruijan_kaiku halti_kven samediggi nrk_sami_oahpahallit kven_seed
+
+python scripts/acquisition_status.py
+```
+
+Un échec réseau isolé n’interrompt pas toute une collection. Relancer la même
+commande reprend les fichiers incomplets. Les pages nécessitant un compte, un
+contournement géographique ou un DRM sont laissées de côté.
+
+## Benchmark reproductible
+
+Les révisions de FLEURS et des modèles sont figées dans
+`configs/benchmarks.yaml`.
+
+```bash
+python scripts/prepare_fleurs.py
+bash scripts/run_initial_benchmarks.sh
+```
+
+Résultats initiaux sur FLEURS norvégien, 357 segments et environ 1,25 h :
+
+| Modèle | WER | CER |
+|---|---:|---:|
+| NbAiLab/nb-whisper-large | 5,44 % | 2,05 % |
+| openai/whisper-large-v3 | 7,76 % | 2,39 % |
+| omniASR CTC 1B v2 | 13,24 % | 3,52 % |
+
+Les prédictions et métriques sont versionnées dans `runs/baselines/`. Les
+poids, checkpoints et données restent ignorés.
 
 ## Contrat d’un manifest
 
@@ -78,3 +134,8 @@ Un modèle est prêt pour un pilote seulement si :
 - l’inférence de fichiers longs est testée avec VAD et timestamps ;
 - le résultat est reproductible depuis les manifests et la configuration.
 
+## Limites du dépôt
+
+Le dépôt contient le code et les petites sorties de benchmark, jamais les
+corpus, cookies, jetons, clés SSH ou poids privés. Les droits et conditions de
+chaque média restent ceux de sa source.

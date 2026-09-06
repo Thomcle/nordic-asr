@@ -1,0 +1,66 @@
+# Public media acquisition registry. Language values are ISO 639-3 codes.
+# "und" means that the programme mixes languages and must pass audio LID.
+
+sveriges_radio:
+  meanraatio:
+    program_id: 1017
+    language: fit
+    candidate_languages: [fit, swe]
+    role: related_language_transfer
+  meanraatiopodden:
+    program_id: 5536
+    language: fit
+    candidate_languages: [fit, swe]
+    role: related_language_transfer
+  mean_klapit:
+    program_id: 4907
+    language: fit
+    candidate_languages: [fit, swe]
+    role: related_language_transfer
+  finnmix:
+    program_id: 2707
+    language: und
+    candidate_languages: [fit, fin, swe]
+    role: related_language_transfer
+  sameradion:
+    program_id: 2327
+    language: und
+    candidate_languages: [sme, smj, sma, swe]
+    role: train_pseudolabel
+  magiska_skrinet:
+    program_id: 3124
+    language: und
+    candidate_languages: [sme, smj, sma, swe]
+    role: train_pseudolabel
+  manaidradio:
+    program_id: 3747
+    language: und
+    candidate_languages: [sme, smj, sma, swe]
+    role: train_pseudolabel
+  politikpodden_sapmi:
+    program_id: 5062
+    language: und
+    candidate_languages: [sme, smj, sma, swe]
+    role: train_pseudolabel
+  sameradiopodden:
+    program_id: 5174
+    language: und
+    candidate_languages: [sme, smj, sma, swe]
+    role: train_pseudolabel
+
+nrk_series:
+  kaffipraatti:
+    slug: kaffipraatti
+    language: fkv
+    candidate_languages: [fkv]
+    role: train_translation_timestamps
+  oddasat_tv:
+    slug: oddasat-tv
+    language: sme
+    candidate_languages: [sme, nob]
+    role: train_pseudolabel
+  ju_ka:
+    slug: ju-ka
+    language: und
+    candidate_languages: [sme, smj, sma, nob]
+    role: train_pseudolabel

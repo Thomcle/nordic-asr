@@ -1,0 +1,15 @@
+fleurs_nb:
+  dataset: google/fleurs
+  dataset_revision: 70bb2e84b976b7e960aa89f1c648e09c59f894dd
+  subset: nb_no
+  split: test
+  language: nob
+  models:
+    whisper_large_v3:
+      model: openai/whisper-large-v3
+      revision: 06f233fe06e710322aca913c1bc4249a0d71fce1
+      whisper_language: norwegian
+    nb_whisper_large:
+      model: NbAiLab/nb-whisper-large
+      revision: 8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac
+      whisper_language: norwegian

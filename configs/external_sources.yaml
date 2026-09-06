@@ -1,0 +1,82 @@
+# Non-dataset media sources. Audio is retained in its original compressed form;
+# subtitles and metadata are stored beside it for later alignment and filtering.
+
+youtube:
+  ruijan_kaiku:
+    url: https://www.youtube.com/@ruijankaiku/videos
+    candidate_languages: [fkv, nob]
+    priority: 1
+  halti_kven:
+    url: https://www.youtube.com/@HaltiKvenkultursenter/videos
+    candidate_languages: [fkv, nob]
+    priority: 1
+  samediggi:
+    url: https://www.youtube.com/@samediggisametinget7255/videos
+    candidate_languages: [sme, smj, sma, nob]
+    priority: 2
+  nrk_sami_oahpahallit:
+    url: https://www.youtube.com/@nrksamioahpahallit1917/videos
+    candidate_languages: [sme, nob]
+    priority: 2
+
+vimeo:
+  kven_seed:
+    candidate_languages: [fkv, nob]
+    priority: 1
+    urls:
+      - https://vimeo.com/324123921
+      - https://vimeo.com/374397625
+      - https://vimeo.com/374144006
+      - https://vimeo.com/371578457
+      - https://vimeo.com/124519920
+      - https://vimeo.com/124188478
+      - https://vimeo.com/726643648
+      - https://vimeo.com/686223963
+
+archives:
+  sametinget_kommunetv:
+    url: https://sametinget.kommunetv.no/archive
+    candidate_languages: [sme, smj, sma, nob]
+    note: Separate interpretation channels; indexed by index_sami_parliament.py.
+  nrk_kvaani:
+    url: https://www.nrk.no/kvensk/
+    candidate_languages: [fkv, nob]
+    note: News video, radio and podcast pages; prefer human WebVTT tracks.
+  nrk_kaffipraatti:
+    url: https://psapi.nrk.no/tv/catalog/series/kaffipraatti
+    candidate_languages: [fkv]
+    note: Six Kven podcast episodes (1.79 h) with Norwegian translated WebVTT.
+  nrk_oddasat:
+    url: https://tv.nrk.no/serie/oddasat-tv
+    candidate_languages: [sme, nob]
+    note: Indexed through the public NRK playback API; subtitles may be translations.
+  nrk_ju_ka:
+    url: https://tv.nrk.no/serie/ju-ka
+    candidate_languages: [sme, smj, sma, nob]
+    note: Mixed-language youth programming; audio LID is mandatory.
+  nrk_sapmi:
+    url: https://www.nrk.no/sapmi/
+    candidate_languages: [sme, smj, sma, nob]
+  yle_sapmi:
+    url: https://yle.fi/sapmi
+    candidate_languages: [sme, smn, sms, fin]
+    note: Yle Areena media can include WebVTT subtitle tracks.
+  svt_sapmi:
+    url: https://www.svtplay.se/sapmi
+    candidate_languages: [sme, smj, sma, swe]
+  sr_meanraatio:
+    url: https://sverigesradio.se/meanraatio
+    candidate_languages: [fit, swe]
+    note: Large Meänkieli radio archive; useful only as related-language acoustic pretraining for Kven.
+  sr_sami:
+    url: https://sverigesradio.se/sameradion
+    candidate_languages: [sme, smj, sma, swe]
+    note: Five registered programmes; mixed-language items require audio LID.
+  digitaltmuseum:
+    url: https://digitaltmuseum.org/search/?q=kvensk
+    candidate_languages: [fkv, nob]
+    note: Oral-history and museum recordings; metadata quality varies.
+  national_library:
+    url: https://www.nb.no/
+    candidate_languages: [nob, nno, sme, fkv]
+    note: Radio, television and oral-history collections; access varies by item.
