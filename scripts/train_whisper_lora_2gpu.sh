@@ -10,4 +10,6 @@ PY="$HOME/miniconda3/envs/nordic-asr/bin/python"
   --validation "$ROOT/data/manifests/npsc_validation.jsonl" \
   --model "NbAiLab/nb-whisper-large" \
   --output "$ROOT/runs/nb-whisper-large-npsc-lora" \
-  --steps "${STEPS:-2000}"
+  --steps "${STEPS:-2000}" \
+  --eval-steps "${EVAL_STEPS:-1000}" \
+  --save-steps "${SAVE_STEPS:-1000}"

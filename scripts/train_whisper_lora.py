@@ -52,19 +52,24 @@ class ManifestDataset(Dataset):
 @dataclass
 class Collator:
     processor: WhisperProcessor
+    decoder_start_token_id: int
 
     def __call__(self, features: list[dict[str, Any]]) -> dict[str, torch.Tensor]:
         audio = [item["audio"] for item in features]
         batch = self.processor.feature_extractor(
-            audio, sampling_rate=16000, return_tensors="pt"
+            audio,
+            sampling_rate=16000,
+            return_attention_mask=True,
+            return_tensors="pt",
         )
+        batch["input_features"] = batch["input_features"].to(torch.bfloat16)
         labels = self.processor.tokenizer(
             [item["text"] for item in features],
             padding=True,
             return_tensors="pt",
         )
         label_ids = labels.input_ids.masked_fill(labels.attention_mask.ne(1), -100)
-        if (label_ids[:, 0] == self.processor.tokenizer.bos_token_id).all():
+        if (label_ids[:, 0] == self.decoder_start_token_id).all():
             label_ids = label_ids[:, 1:]
         batch["labels"] = label_ids
         return batch
@@ -128,11 +133,11 @@ def main() -> None:
     model.generation_config.language = args.whisper_language
     model.generation_config.task = "transcribe"
     model.config.use_cache = False
-    model.gradient_checkpointing_enable()
+    checkpointing = {"use_reentrant": False}
+    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs=checkpointing)
     model = get_peft_model(
         model,
         LoraConfig(
-            task_type="SEQ_2_SEQ_LM",
             r=args.lora_rank,
             lora_alpha=args.lora_rank * 2,
             lora_dropout=0.05,
@@ -160,6 +165,7 @@ def main() -> None:
         gradient_accumulation_steps=args.gradient_accumulation,
         bf16=True,
         gradient_checkpointing=True,
+        gradient_checkpointing_kwargs=checkpointing,
         eval_strategy="steps",
         eval_steps=args.eval_steps,
         save_steps=args.save_steps,
@@ -180,7 +186,7 @@ def main() -> None:
         args=training_args,
         train_dataset=ManifestDataset(args.train, args.custom_language_tokens),
         eval_dataset=ManifestDataset(args.validation, args.custom_language_tokens),
-        data_collator=Collator(processor),
+        data_collator=Collator(processor, model.config.decoder_start_token_id),
         compute_metrics=compute_metrics,
         processing_class=processor,
     )
