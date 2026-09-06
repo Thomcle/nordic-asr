@@ -1,0 +1,49 @@
+# Public Amedia video pages sampled for customer-domain evaluation.
+# Dialects are geographic hints, not ground-truth labels.
+
+sites:
+  ifinnmark:
+    url: https://www.ifinnmark.no/video/
+    dialect_hint: north
+  finnmarksposten:
+    url: https://www.finnmarksposten.no/video/
+    dialect_hint: north
+  hammerfestingen:
+    url: https://www.hammerfestingen.no/video/
+    dialect_hint: north
+  sor_varanger_avis:
+    url: https://www.sva.no/video/
+    dialect_hint: north
+  nordlys:
+    url: https://www.nordlys.no/video/
+    dialect_hint: north
+  fremover:
+    url: https://www.fremover.no/video/
+    dialect_hint: north
+  avisa_nordland:
+    url: https://www.an.no/video/
+    dialect_hint: north
+  lofotposten:
+    url: https://www.lofotposten.no/video/
+    dialect_hint: north
+  rana_blad:
+    url: https://www.ranablad.no/video/
+    dialect_hint: north
+  nidaros:
+    url: https://www.nidaros.no/video/
+    dialect_hint: mid
+  firda:
+    url: https://www.firda.no/video/
+    dialect_hint: west
+  bergensavisen:
+    url: https://www.ba.no/video/
+    dialect_hint: west
+  jaerbladet:
+    url: https://www.jbl.no/video/
+    dialect_hint: south
+  aust_agder_blad:
+    url: https://www.austagderblad.no/video/
+    dialect_hint: south
+  fredrikstad_blad:
+    url: https://www.f-b.no/video/
+    dialect_hint: east

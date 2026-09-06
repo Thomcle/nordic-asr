@@ -27,6 +27,7 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--chunk-seconds", type=float, default=30)
     parser.add_argument("--language", help="Whisper language name/code; omit for CTC")
+    parser.add_argument("--group-by", default="language")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--seed", type=int, default=17)
     args = parser.parse_args()
@@ -67,6 +68,9 @@ def main() -> None:
                 scored = {
                     "id": row["id"],
                     "language": row["language"],
+                    "dialect": row.get("dialect"),
+                    "source": row.get("source"),
+                    "speaker_id": row.get("speaker_id"),
                     "reference": row["text"],
                     "hypothesis": prediction["text"],
                 }
@@ -75,7 +79,7 @@ def main() -> None:
             print(f"{min(start + args.batch_size, len(rows))}/{len(rows)}", flush=True)
 
     elapsed = time.monotonic() - started
-    scores = score_rows(scored_rows)
+    scores = score_rows(scored_rows, group_by=args.group_by)
     metrics_path = args.out.with_suffix(".metrics.json")
     metrics_path.write_text(
         json.dumps(scores, ensure_ascii=False, indent=2) + "\n",

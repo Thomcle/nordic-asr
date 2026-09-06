@@ -27,6 +27,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+cloud = [
+  "requests>=2.32,<3",
+]
 quality = [
   "audiomentations>=0.42,<0.43",
   "datasketch>=1.6,<2",

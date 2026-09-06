@@ -18,6 +18,7 @@ def main() -> None:
     parser.add_argument("--model", default="omniASR_CTC_1B_v2")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--group-by", default="language")
     parser.add_argument("--limit", type=int)
     args = parser.parse_args()
 
@@ -40,6 +41,9 @@ def main() -> None:
                 scored = {
                     "id": row["id"],
                     "language": row["language"],
+                    "dialect": row.get("dialect"),
+                    "source": row.get("source"),
+                    "speaker_id": row.get("speaker_id"),
                     "reference": row["text"],
                     "hypothesis": hypothesis,
                 }
@@ -49,7 +53,12 @@ def main() -> None:
 
     metrics_path = args.out.with_suffix(".metrics.json")
     metrics_path.write_text(
-        json.dumps(score_rows(scored_rows), ensure_ascii=False, indent=2) + "\n",
+        json.dumps(
+            score_rows(scored_rows, group_by=args.group_by),
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
         encoding="utf-8",
     )
     print(metrics_path)
@@ -57,4 +66,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

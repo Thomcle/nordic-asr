@@ -1,0 +1,53 @@
+# No credentials belong in this file. Keys are read from environment variables.
+# Support and trial offers were checked against provider pages on 2026-09-06.
+
+providers:
+  elevenlabs:
+    model: scribe_v2
+    credential_environment_variable: ELEVENLABS_API_KEY
+    documented_languages: [nor]
+    trial_note: Included minutes depend on the account plan; verify in the dashboard.
+    pricing_url: https://elevenlabs.io/pricing/api
+    language_url: https://elevenlabs.io/docs/capabilities/speech-to-text
+  deepgram:
+    model: nova-3
+    credential_environment_variable: DEEPGRAM_API_KEY
+    documented_languages: [nor]
+    trial_note: The public pricing page advertises $200 in introductory credit.
+    pricing_url: https://deepgram.com/pricing
+    language_url: https://developers.deepgram.com/docs/models-languages-overview
+  azure:
+    model: speech_to_text
+    credential_environment_variable: AZURE_SPEECH_KEY
+    documented_languages: [nob]
+    trial_note: F0 lists five audio hours of real-time transcription per month.
+    pricing_url: https://azure.microsoft.com/pricing/details/cognitive-services/speech-services/
+    language_url: https://learn.microsoft.com/azure/ai-services/speech-service/language-support
+  aws:
+    model: amazon_transcribe
+    credential_environment_variable: AWS_ACCESS_KEY_ID
+    documented_languages: [nob]
+    trial_note: Sixty minutes per month for twelve months for eligible new accounts.
+    pricing_url: https://aws.amazon.com/transcribe/pricing/
+    language_url: https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html
+  google:
+    model: chirp
+    credential_environment_variable: GOOGLE_APPLICATION_CREDENTIALS
+    documented_languages: [nob]
+    trial_note: New accounts may use general Google Cloud trial credit.
+    pricing_url: https://cloud.google.com/speech-to-text/pricing
+    language_url: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
+  speechmatics:
+    model: enhanced
+    credential_environment_variable: SPEECHMATICS_API_KEY
+    documented_languages: [nob, nno]
+    trial_note: The public pricing page advertises $100 credit without a card.
+    pricing_url: https://www.speechmatics.com/pricing
+    language_url: https://docs.speechmatics.com/introduction/supported-languages
+  gladia:
+    model: solaria-1
+    credential_environment_variable: GLADIA_API_KEY
+    documented_languages: [nor]
+    trial_note: The public pricing page advertises EUR 50 in introductory credit.
+    pricing_url: https://www.gladia.io/pricing
+    language_url: https://docs.gladia.io/

@@ -27,13 +27,27 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset")
     parser.add_argument("--config")
+    parser.add_argument("--revision")
     parser.add_argument("--split", default="test")
+    parser.add_argument(
+        "--output-split",
+        help="Manifest split label and filename; defaults to the dataset split.",
+    )
     parser.add_argument("--language", required=True)
     parser.add_argument("--source")
     parser.add_argument("--audio-column", default="audio")
     parser.add_argument("--text-column", default="transcription")
     parser.add_argument("--id-column", default="id")
     parser.add_argument("--speaker-column")
+    parser.add_argument("--dialect-column")
+    parser.add_argument("--metadata-columns", nargs="*", default=[])
+    parser.add_argument(
+        "--where",
+        action="append",
+        default=[],
+        metavar="COLUMN=VALUE",
+        help="Keep only rows whose column exactly matches VALUE; repeatable.",
+    )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--streaming", action="store_true")
     parser.add_argument("--limit", type=int)
@@ -43,6 +57,7 @@ def main() -> None:
         args.dataset,
         args.config,
         split=args.split,
+        revision=args.revision,
         streaming=args.streaming,
     )
     try:
@@ -51,14 +66,18 @@ def main() -> None:
         pass
 
     source = args.source or args.dataset.replace("/", "_")
+    output_split = args.output_split or args.split
     audio_dir = args.out / "audio"
     audio_dir.mkdir(parents=True, exist_ok=True)
-    manifest_path = args.out / f"{args.split}.jsonl"
+    manifest_path = args.out / f"{output_split}.jsonl"
     count = 0
     seconds = 0.0
+    filters = dict(item.split("=", 1) for item in args.where)
     with manifest_path.open("w", encoding="utf-8") as manifest:
         for index, row in enumerate(dataset):
-            if args.limit is not None and index >= args.limit:
+            if any(str(row.get(column)) != value for column, value in filters.items()):
+                continue
+            if args.limit is not None and count >= args.limit:
                 break
             samples, sample_rate = audio_array(row[args.audio_column])
             if samples.ndim > 1:
@@ -71,19 +90,26 @@ def main() -> None:
             sf.write(path, samples, sample_rate, format="FLAC")
             duration = len(samples) / sample_rate
             output = {
-                "id": f"{source}:{args.split}:{item_id}",
+                        "id": f"{source}:{output_split}:{item_id}",
                 "audio": str(path),
                 "text": str(row[args.text_column]),
                 "language": args.language,
-                "split": args.split,
+                        "split": output_split,
                 "duration": duration,
                 "speaker_id": (
                     str(row.get(args.speaker_column, "")) if args.speaker_column else ""
+                ),
+                "dialect": (
+                    str(row.get(args.dialect_column, ""))
+                    if args.dialect_column
+                    else ""
                 ),
                 "source": source,
                 "supervision": "manual",
                 "original_id": original_id,
             }
+            for column in args.metadata_columns:
+                output[column] = row.get(column)
             manifest.write(json.dumps(output, ensure_ascii=False) + "\n")
             count += 1
             seconds += duration

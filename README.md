@@ -85,6 +85,9 @@ python scripts/download_external_media.py \
   --sources ruijan_kaiku halti_kven samediggi nrk_sami_oahpahallit kven_seed
 
 python scripts/acquisition_status.py
+
+# Métadonnées des vidéos publiques des titres de presse régionaux
+python scripts/index_amedia_video.py
 ```
 
 Un échec réseau isolé n’interrompt pas toute une collection. Relancer la même
@@ -101,6 +104,14 @@ python scripts/prepare_fleurs.py
 bash scripts/run_initial_benchmarks.sh
 ```
 
+Pour un test dialectal équilibré :
+
+```bash
+python scripts/select_benchmark.py data/eval/nbtale12/test.jsonl \
+  --group-by dialect --minutes-per-group 60 \
+  --out data/eval/nbtale12/dialect_balanced.jsonl
+```
+
 Résultats initiaux sur FLEURS norvégien, 357 segments et environ 1,25 h :
 
 | Modèle | WER | CER |
@@ -111,6 +122,9 @@ Résultats initiaux sur FLEURS norvégien, 357 segments et environ 1,25 h :
 
 Les prédictions et métriques sont versionnées dans `runs/baselines/`. Les
 poids, checkpoints et données restent ignorés.
+
+Le protocole détaillé, incluant comparaison cloud et résultats par dialecte,
+est dans [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
 ## Contrat d’un manifest
 
