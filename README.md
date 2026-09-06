@@ -1,121 +1,120 @@
 # Nordic ASR
 
-Projet de reconnaissance vocale pour :
+Speech recognition project for:
 
-- norvégien bokmål (`nob`) et nynorsk (`nno`) ;
-- sámi du Nord (`sme`) en priorité, puis lule (`smj`) et sud (`sma`) si les
-  données sont suffisantes ;
-- kvène (`fkv`).
+- Norwegian Bokmål (`nob`) and Nynorsk (`nno`);
+- Northern Sámi (`sme`) first, followed by Lule (`smj`) and Southern Sámi
+  (`sma`) when sufficient data is available;
+- Kven (`fkv`).
 
-Le dépôt est conçu pour une machine disposant de deux NVIDIA L4. Les données,
-modèles et expériences restent hors Git dans `data/`, `models/` et `runs/`.
+The repository targets a machine equipped with two NVIDIA L4 GPUs. Data,
+models, and experiment artifacts remain outside Git in `data/`, `models/`, and
+`runs/`.
 
-## Stratégie
+## Strategy
 
-Nous ne déclarons pas un modèle « SOTA » avant une évaluation indépendante.
-Deux familles sont comparées :
+We do not claim that a model is state of the art before an independent
+evaluation. Two model families are compared:
 
-1. **Whisper large-v3 / NB-Whisper** : excellente ponctuation, robustesse et
-   intégration produit ; adaptation LoRA puis dégel partiel.
-2. **wav2vec2 sámi 22k / OmniASR CTC** : très bon point de départ acoustique
-   pour les langues minoritaires et inférence rapide.
+1. **Whisper large-v3 / NB-Whisper**: strong punctuation, robustness, and
+   product integration; adapted with LoRA followed by partial unfreezing.
+2. **Sámi wav2vec2 22k / OmniASR CTC**: strong acoustic initialization for
+   minority languages and fast inference.
 
-Le champion sera choisi sur le **macro-WER par langue**, le CER, la robustesse
-au bruit, les noms propres, le débit et la mémoire. Aucun corpus d’entraînement
-ne doit contaminer les jeux de test.
+The winning model will be selected using **macro WER by language**, CER,
+robustness to noise, proper nouns, throughput, and memory usage. Training data
+must never contaminate the test sets.
 
-## Arborescence
+## Repository layout
 
 ```text
-configs/       paramètres et registre des sources
-scripts/       acquisition, validation, entraînement et évaluation
-src/           normalisation et métriques partagées
-data/raw/      archives sources
-data/manifests manifests JSONL normalisés
-data/eval/     jeux de test gelés
-models/        poids téléchargés et modèles produits
-runs/          journaux et checkpoints
+configs/       parameters and source registry
+scripts/       acquisition, validation, training, and evaluation
+src/           shared normalization and metrics
+data/raw/      source archives
+data/manifests normalized JSONL manifests
+data/eval/     frozen evaluation sets
+models/        downloaded weights and trained models
+runs/          logs and checkpoints
 ```
 
-Les sources non conventionnelles (YouTube, Vimeo, NRK, Sveriges Radio,
-KommuneTV) sont documentées dans `docs/EXTERNAL_SOURCES.md` et déclarées dans
-`configs/external_sources.yaml` et `configs/acquisition.yaml`.
+Non-traditional sources such as YouTube, Vimeo, NRK, Sveriges Radio, and
+KommuneTV are documented in `docs/EXTERNAL_SOURCES.md` and declared in
+`configs/external_sources.yaml` and `configs/acquisition.yaml`.
 
-## Démarrage sur la VM
+## VM setup
 
 ```bash
 cd ~/nordic-asr
 bash scripts/bootstrap_vm.sh
 conda activate nordic-asr
 
-# Inventaire sans téléchargement
+# List available resources without downloading them
 python scripts/download_sprakbanken.py --list
 
-# Corpus norvégiens sélectionnés
+# Selected Norwegian corpora
 python scripts/download_sprakbanken.py \
   --datasets npsc nbsamtale nbtale nst \
   --download --jobs 4
 
-# Contrôle d'un manifest
+# Validate a manifest
 python scripts/validate_manifest.py data/manifests/train.jsonl
 ```
 
-Le premier entraînement norvégien reproductible extrait uniquement les
-segments NPSC, construit un split de validation par séance, exécute un smoke
-test distribué puis lance une adaptation LoRA de NB-Whisper sur les deux GPU :
+The first reproducible Norwegian training pipeline extracts only NPSC
+segments, creates a session-level validation split, runs a distributed smoke
+test, and then starts a two-GPU LoRA adaptation of NB-Whisper:
 
 ```bash
 nohup scripts/run_npsc_training_pipeline.sh \
   > logs/npsc_training_pipeline.log 2>&1 &
 ```
 
-Le test NB Tale reste strictement exclu de cet entraînement.
+The NB Tale test set is strictly excluded from this training run.
 
-## Acquisition publique et reprise
+## Public and resumable data acquisition
 
-Tous les téléchargements sont atomiques et reprenables. Les index JSONL
-conservent l’URL, l’identifiant, la durée et la provenance sans placer les
-médias dans Git.
+All downloads are atomic and resumable. JSONL indexes retain the URL,
+identifier, duration, and provenance without committing media files to Git.
 
 ```bash
-# Parlement sámi : quatre canaux audio
+# Sámi Parliament: four audio channels
 python scripts/index_sami_parliament.py
 python scripts/download_sami_parliament.py \
   --languages sme smj sma nob --jobs 3
 
-# Radios sámi et meänkieli de Sveriges Radio
+# Sámi and Meänkieli radio from Sveriges Radio
 python scripts/index_registered_media.py \
   --group sveriges_radio --download --jobs 3
 
-# Séries NRK explicitement enregistrées (kvène et sámi)
+# Explicitly registered NRK series in Kven and Sámi
 python scripts/index_registered_media.py \
   --group nrk_series --download --jobs 2
 
-# Chaînes vidéo autorisées par la configuration
+# Video channels authorized by the configuration
 python scripts/download_external_media.py \
   --sources ruijan_kaiku halti_kven samediggi nrk_sami_oahpahallit kven_seed
 
 python scripts/acquisition_status.py
 
-# Métadonnées des vidéos publiques des titres de presse régionaux
+# Metadata for public videos from regional news outlets
 python scripts/index_amedia_video.py
 ```
 
-Un échec réseau isolé n’interrompt pas toute une collection. Relancer la même
-commande reprend les fichiers incomplets. Les pages nécessitant un compte, un
-contournement géographique ou un DRM sont laissées de côté.
+An isolated network failure does not stop an entire collection. Running the
+same command again resumes incomplete files. Pages requiring an account,
+geographic circumvention, or DRM bypass are skipped.
 
-## Benchmark reproductible
+## Reproducible benchmarks
 
-Les révisions de FLEURS et des modèles sont figées dans
-`configs/benchmarks.yaml`.
+FLEURS and model revisions are pinned in `configs/benchmarks.yaml`.
 
 ```bash
 python scripts/prepare_fleurs.py
 bash scripts/run_initial_benchmarks.sh
 ```
 
-Pour un test dialectal équilibré :
+To create a balanced dialect evaluation set:
 
 ```bash
 python scripts/select_benchmark.py data/eval/nbtale12/test.jsonl \
@@ -123,44 +122,45 @@ python scripts/select_benchmark.py data/eval/nbtale12/test.jsonl \
   --out data/eval/nbtale12/dialect_balanced.jsonl
 ```
 
-Résultats initiaux sur FLEURS norvégien, 357 segments et environ 1,25 h :
+Initial results on Norwegian FLEURS, with 357 segments and approximately
+1.25 hours of audio:
 
-| Modèle | WER | CER |
+| Model | WER | CER |
 |---|---:|---:|
-| NbAiLab/nb-whisper-large | 5,44 % | 2,05 % |
-| openai/whisper-large-v3 | 7,76 % | 2,39 % |
-| omniASR CTC 1B v2 | 13,24 % | 3,52 % |
+| NbAiLab/nb-whisper-large | 5.44% | 2.05% |
+| openai/whisper-large-v3 | 7.76% | 2.39% |
+| omniASR CTC 1B v2 | 13.24% | 3.52% |
 
-Les prédictions et métriques sont versionnées dans `runs/baselines/`. Les
-poids, checkpoints et données restent ignorés.
+Predictions and metrics are stored in `runs/baselines/`. Weights, checkpoints,
+and data remain ignored by Git.
 
-Le protocole détaillé, incluant comparaison cloud et résultats par dialecte,
-est dans [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
+The detailed protocol, including cloud comparisons and per-dialect results, is
+available in [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
-## Contrat d’un manifest
+## Manifest contract
 
-Une ligne JSON par segment :
+Each segment is represented by one JSON line:
 
 ```json
 {"id":"source:segment","audio":"/abs/path.wav","text":"...","language":"sme","split":"train","duration":8.4,"speaker_id":"...","source":"..."}
 ```
 
-Les séparations sont faites par locuteur, émission ou séance, jamais au hasard
-par segment. Les transcriptions faibles sont marquées `supervision="weak"` et
-ne sont pas utilisées dans les jeux de test.
+Splits are made by speaker, program, or session, never randomly by segment.
+Weak transcriptions are marked with `supervision="weak"` and are not used in
+test sets.
 
-## Critère de sortie
+## Release criteria
 
-Un modèle est prêt pour un pilote seulement si :
+A model is ready for a pilot only when:
 
-- le WER/CER est publié séparément pour `nob`, `nno`, `sme` et `fkv` ;
-- un test hors domaine, bruité et conversationnel est conservé ;
-- le taux d’hallucination sur silence et audio hors langue est mesuré ;
-- l’inférence de fichiers longs est testée avec VAD et timestamps ;
-- le résultat est reproductible depuis les manifests et la configuration.
+- WER and CER are reported separately for `nob`, `nno`, `sme`, and `fkv`;
+- an out-of-domain, noisy, conversational test set is retained;
+- hallucination rates on silence and out-of-language audio are measured;
+- long-form inference is tested with VAD and timestamps;
+- the result can be reproduced from the manifests and configuration.
 
-## Limites du dépôt
+## Repository limitations
 
-Le dépôt contient le code et les petites sorties de benchmark, jamais les
-corpus, cookies, jetons, clés SSH ou poids privés. Les droits et conditions de
-chaque média restent ceux de sa source.
+The repository contains code and small benchmark outputs, never corpora,
+cookies, tokens, SSH keys, or private weights. Each media item remains subject
+to the rights and terms of its original source.
