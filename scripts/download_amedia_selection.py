@@ -15,6 +15,7 @@ def main() -> None:
     parser.add_argument("index", type=Path)
     parser.add_argument("--ids", nargs="+", required=True)
     parser.add_argument("--out", type=Path, default=Path("data/eval/amedia_candidates"))
+    parser.add_argument("--manifest-out", type=Path)
     args = parser.parse_args()
 
     wanted = set(args.ids)
@@ -26,6 +27,7 @@ def main() -> None:
         raise SystemExit(f"Unknown IDs: {', '.join(missing)}")
 
     args.out.mkdir(parents=True, exist_ok=True)
+    manifest_rows = []
     for row in rows:
         if row.get("premium"):
             print(f"skip premium {row['id']}", flush=True)
@@ -58,7 +60,21 @@ def main() -> None:
             subtitle = args.out / f"{stem}.{track.get('lang', 'und')}.{number}.vtt"
             if not subtitle.exists():
                 urllib.request.urlretrieve(track["src"], subtitle)
+        manifest_rows.append(
+            {
+                **row,
+                "audio": str(audio.resolve()),
+                "text": "",
+                "split": "test",
+                "reference_status": "needs_human_review",
+            }
+        )
         print(audio, flush=True)
+    manifest_out = args.manifest_out or args.out / "candidates.jsonl"
+    with manifest_out.open("w", encoding="utf-8") as output:
+        for row in manifest_rows:
+            output.write(json.dumps(row, ensure_ascii=False) + "\n")
+    print(f"Wrote {len(manifest_rows)} candidates to {manifest_out}")
 
 
 if __name__ == "__main__":
